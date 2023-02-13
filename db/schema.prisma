@@ -1,0 +1,148 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["extendedWhereUnique"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  providerId   String         @unique
+  name         String?
+  email        String         @unique
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  account      Boolean        @default(false)
+  announcement Announcement[]
+  booking      Booking?
+  messages     Message[]
+  profile      Profile?
+  recipients   Recipient[]
+}
+
+model Profile {
+  id         String   @id @default(cuid())
+  phone      String
+  referral   String
+  credential String
+  consent    String
+  userId     String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  name        String
+  email       String   @unique
+  phone       String
+  referral    String
+  credential  String
+  consent     String
+  dismissedBy String[]
+  authorized  Boolean  @default(false)
+}
+
+model Location {
+  id            String    @id @default(cuid())
+  name          String
+  address       String
+  isAvailable   Boolean   @default(true)
+  archived      Boolean   @default(false)
+  booking       Booking?
+  payments      Payment[]
+  expiredNotice Boolean   @default(false)
+}
+
+model Booking {
+  contrato   String
+  active     Boolean   @default(false)
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  duration   Int?
+  amount     Int
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locationId String    @unique
+  location   Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id         String    @id @default(cuid())
+  date       DateTime  @default(now())
+  dueDate    DateTime?
+  overDue    Boolean   @default(false)
+  archived   Boolean   @default(false)
+  amount     Int
+  locationId String
+  location   Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id           String            @id @unique @default(cuid())
+  title        String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  body         String
+  attachment   String?
+  category     Category?
+  notification NotificationType?
+  dismissedBy  String[]
+  isSolved     Boolean?          @default(false)
+  archived     Boolean           @default(false)
+  dismissed    Boolean           @default(false)
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments     Comment[]
+}
+
+model Comment {
+  id          String        @id @unique @default(cuid())
+  comment     String
+  commentBy   CommentAuthor @default(INQUILINO)
+  messageId   String
+  message     Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  dismissed   Boolean       @default(false)
+  dismissedBy String[]
+}
+
+model Announcement {
+  id        String      @id @default(cuid())
+  createdAt DateTime    @default(now())
+  title     String
+  content   String
+  isPublic  Boolean     @default(false)
+  archived  Boolean     @default(false)
+  authorId  String
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  recipient Recipient[]
+}
+
+model Recipient {
+  announcementId String
+  userId         String
+  isVisible      Boolean      @default(true)
+  announcement   Announcement @relation(fields: [announcementId], references: [id])
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, userId], name: "recipientId")
+}
+
+enum Category {
+  ELECTRICO
+  FUGA
+  GAS
+  OTROS
+}
+
+enum NotificationType {
+  PAYMENT
+}
+
+enum CommentAuthor {
+  INQUILINO
+  STAFF
+}

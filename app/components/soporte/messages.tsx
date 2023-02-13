@@ -1,0 +1,76 @@
+import clsx from 'clsx'
+import { CategoryIcon, CheckIcon } from '~/components/icons'
+import { FechaFull } from '~/components/shared'
+import type { Message } from '@prisma/client'
+
+type MessageType = Pick<
+	Message,
+	'id' | 'title' | 'body' | 'category' | 'createdAt' | 'isSolved'
+> & {
+	children: React.ReactNode
+}
+
+export let Messages = ({
+	id,
+	title,
+	body,
+	category,
+	createdAt,
+	isSolved,
+	children,
+}: MessageType) => {
+	return (
+		<>
+			<div
+				key={id}
+				className={clsx(
+					'grid max-w-prose gap-2 rounded-md border bg-white px-3 pt-2 pb-3 text-brand sm:max-w-none sm:rounded-md sm:p-3 sm:shadow-lg',
+					{
+						'border-red-300': !isSolved,
+						'border-none bg-slate-300/90': isSolved,
+					},
+				)}
+			>
+				<h2 className="text-base font-bold text-brand-dark">{title}</h2>
+				<div className="text-sm">
+					<p>{body}</p>
+				</div>
+				<div className="grid grid-flow-col">
+					<p className="mt-5 grid grid-flow-col place-content-start text-sm leading-3">
+						<CategoryIcon className="text-slate-500" aria-hidden="true" />
+						<span className="pl-0.5 lowercase text-slate-500 first-letter:uppercase">
+							{category}
+						</span>
+					</p>
+					<div className="ml-auto self-end font-sans text-xs text-slate-500">
+						<FechaFull
+							day={
+								new Date(createdAt).toLocaleDateString('es-MX').split('/')[0]
+							}
+							month={
+								(new Date(createdAt).getMonth() + 1).toLocaleString().length ===
+								1
+									? '0' + (new Date(createdAt).getMonth() + 1)
+									: new Date(createdAt).getMonth() + 1
+							}
+							year={
+								new Date(createdAt).toLocaleDateString('es-MX').split('/')[2]
+							}
+						/>
+					</div>
+				</div>
+			</div>
+			{!isSolved ? (
+				<div className="mt-8 grid">{children}</div>
+			) : (
+				<>
+					{children}
+					<div className="mt-4 flex items-center justify-end">
+						<CheckIcon className="mt-1 text-emerald-700" />
+						<p className="pr-2 text-sm text-emerald-700">Ticket solucionado</p>
+					</div>
+				</>
+			)}
+		</>
+	)
+}

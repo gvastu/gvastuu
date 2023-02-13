@@ -1,0 +1,16 @@
+.vscode/
+.DS_Store
+node_modules
+
+/build
+/public
+.node-persist/
+.cache
+.github
+app/styles/style.css
+.env
+
+/postgres-data
+
+/package-lock.json
+/yarn.lock
